@@ -318,6 +318,14 @@
               </svg>
               <span>QR Code</span>
             </button>
+
+            <!-- Install to home screen -->
+            <button onclick="installApp()" class="flex items-center justify-center gap-1.5 py-3 px-3.5 rounded-xl bg-white border-2 border-[#81c6e6] hover:bg-sky-50 active:scale-95 text-[#368ee3] font-bold text-xs sm:text-sm transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Install</span>
+            </button>
           </div>
 
         </div>
@@ -339,14 +347,11 @@
               </button>
             </div>
 
-            <!-- QR Code Destination Selector -->
-            <div class="flex p-1 bg-slate-100/90 rounded-xl mb-3 text-xs font-bold">
-              <button id="tab-alignable" onclick="setQRTarget('alignable')" class="flex-1 py-1.5 rounded-lg bg-white text-[#368ee3] shadow-xs transition-all">
-                Alignable Link
-              </button>
-              <button id="tab-website" onclick="setQRTarget('website')" class="flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all">
-                TheWebSwan.com
-              </button>
+            <!-- QR Code Selector: three codes -->
+            <div class="flex p-1 bg-slate-100/90 rounded-xl mb-3 text-[11px] font-bold gap-1">
+              <button id="tab-cred" onclick="setQRTarget('cred')" class="flex-1 py-1.5 rounded-lg bg-white text-[#368ee3] shadow-xs transition-all font-bold">My Credentials</button>
+              <button id="tab-rachel" onclick="setQRTarget('rachel')" class="flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all font-semibold">Call Rachel</button>
+              <button id="tab-phone" onclick="setQRTarget('phone')" class="flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all font-semibold">My Phone</button>
             </div>
 
             <div class="flex flex-col items-center justify-center my-2">
@@ -355,7 +360,7 @@
                 <div id="qr-canvas-container"></div>
                 
                 <div class="mt-2 text-[10px] tracking-wider uppercase font-bold text-[#368ee3] flex items-center gap-1">
-                  <span>Scan with phone camera</span>
+                  <span id="qr-caption">Scan to see my credentials</span>
                 </div>
               </div>
 
@@ -363,9 +368,9 @@
               <div class="mt-3 w-full p-2.5 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-between text-left">
                 <div class="truncate mr-2">
                   <div id="qr-label-name" class="text-[9px] uppercase tracking-wider font-bold text-slate-400">Target Address</div>
-                  <div id="qr-url-display" class="text-xs font-medium text-slate-700 truncate">
+                  <a id="qr-url-display" href="https://taniad2169.github.io/WebSWan-Alignable/" target="_blank" rel="noopener noreferrer" class="block text-xs font-medium text-slate-700 truncate underline decoration-sky-300">
                     https://taniad2169.github.io/WebSWan-Alignable/
-                  </div>
+                  </a>
                 </div>
                 <button onclick="copyCurrentTarget()" class="p-1.5 px-2 rounded-lg bg-white border border-sky-200 text-[#368ee3] hover:bg-sky-50 text-[11px] font-bold shrink-0 flex items-center gap-1 shadow-2xs active:scale-95">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -377,7 +382,11 @@
             </div>
           </div>
 
-          <div class="mt-3 pt-3 border-t border-sky-100 flex gap-2">
+          <div class="mt-3 pt-3 border-t border-sky-100 grid grid-cols-2 gap-2">
+            <button onclick="shareCardLink()" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md active:scale-95 transition-all">Copy &amp; Share Card</button>
+            <button onclick="installApp()" class="py-2.5 px-3 rounded-xl bg-white border border-[#81c6e6] text-[#368ee3] font-bold text-xs hover:bg-sky-50 active:scale-95 transition-all">Install App</button>
+          </div>
+          <div class="mt-2 flex gap-2">
             <button onclick="toggleCardFlip()" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#368ee3] to-[#81c6e6] text-white font-bold text-xs shadow-md active:scale-95 transition-all">
               Return to Profile
             </button>
@@ -413,11 +422,13 @@
   <script>
     // State
     let isFlipped = false;
-    let currentTarget = 'alignable';
+    let currentTarget = 'cred';
     const cardShareUrl = 'https://taniad2169.github.io/The-WebSwan-E-CArd/';
-    const urls = {
-      alignable: 'https://taniad2169.github.io/WebSWan-Alignable/',
-      website: 'https://www.thewebswan.com'
+    // The three QR codes on the back of the card.
+    const targets = {
+      cred:   { tab: 'tab-cred',   label: 'My Credentials',                 qr: 'https://taniad2169.github.io/WebSWan-Alignable/', display: 'https://taniad2169.github.io/WebSWan-Alignable/', copy: 'https://taniad2169.github.io/WebSWan-Alignable/', caption: 'Scan to see my credentials', copied: 'Credentials link copied!' },
+      rachel: { tab: 'tab-rachel', label: 'Call Rachel - AI Receptionist',  qr: 'tel:+12396670151', display: 'Call Rachel: (239) 667-0151', copy: '2396670151', caption: 'Scan to call Rachel', copied: 'Rachel\'s number copied!' },
+      phone:  { tab: 'tab-phone',  label: 'Tania Domingue - Direct',        qr: 'tel:+14158770687', display: 'Tania: (415) 877-0687', copy: '4158770687', caption: 'Scan to reach Tania', copied: 'Phone number copied!' }
     };
 
     // Copy and Share Card Link Handler
@@ -452,31 +463,48 @@
       }
     }
 
-    // Set QR Target Tab
-    function setQRTarget(type) {
+    // Switch which of the three QR codes is showing
+    const TAB_ON = "flex-1 py-1.5 rounded-lg bg-white text-[#368ee3] shadow-xs transition-all font-bold";
+    const TAB_OFF = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all font-semibold";
+    function setQRTarget(type, quiet) {
+      const t = targets[type];
+      if (!t) return;
       currentTarget = type;
-      const tabAlignable = document.getElementById('tab-alignable');
-      const tabWebsite = document.getElementById('tab-website');
+      Object.keys(targets).forEach(k => {
+        const el = document.getElementById(targets[k].tab);
+        if (el) el.className = k === type ? TAB_ON : TAB_OFF;
+      });
       const displayUrl = document.getElementById('qr-url-display');
-      const labelName = document.getElementById('qr-label-name');
-
-      if (type === 'alignable') {
-        tabAlignable.className = "flex-1 py-1.5 rounded-lg bg-white text-[#368ee3] shadow-xs transition-all font-bold";
-        tabWebsite.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all font-semibold";
-        labelName.textContent = "Alignable Profile Link";
-      } else {
-        tabWebsite.className = "flex-1 py-1.5 rounded-lg bg-white text-[#368ee3] shadow-xs transition-all font-bold";
-        tabAlignable.className = "flex-1 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-all font-semibold";
-        labelName.textContent = "TheWebSwan Website Link";
-      }
-
-      displayUrl.textContent = urls[type];
-      generateQR(urls[type]);
-      showToast(`QR Code switched to ${type === 'alignable' ? 'Alignable' : 'Website'}!`);
+      document.getElementById('qr-label-name').textContent = t.label;
+      document.getElementById('qr-caption').textContent = t.caption;
+      displayUrl.textContent = t.display;
+      displayUrl.href = t.qr;
+      if (t.qr.indexOf('tel:') === 0) { displayUrl.removeAttribute('target'); } else { displayUrl.target = '_blank'; }
+      generateQR(t.qr);
+      if (!quiet) showToast('QR code: ' + t.label);
     }
 
     function copyCurrentTarget() {
-      copyToClipboard(urls[currentTarget], 'URL copied to clipboard!');
+      copyToClipboard(targets[currentTarget].copy, targets[currentTarget].copied);
+    }
+
+    // Install to home screen. Android/desktop Chrome offer a real prompt;
+    // iPhone has no prompt, so we show the two taps it takes.
+    let deferredInstall = null;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; });
+    window.addEventListener('appinstalled', () => { deferredInstall = null; showToast('The WebSwan card is installed!'); });
+    function installApp() {
+      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        showToast('This card is already installed on your device.');
+        return;
+      }
+      if (deferredInstall) {
+        deferredInstall.prompt();
+        deferredInstall.userChoice.finally(() => { deferredInstall = null; });
+        return;
+      }
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      showToast(ios ? 'iPhone: tap the Share button, then "Add to Home Screen".' : 'Open your browser menu, then tap "Install app" or "Add to Home screen".', 6000);
     }
 
     // Real, scannable QR code via the qrcodejs library (same engine used
@@ -560,7 +588,7 @@
 
     // Toast feedback notification
     let toastTimer = null;
-    function showToast(text) {
+    function showToast(text, ms) {
       const toast = document.getElementById('toast-notify');
       const toastText = document.getElementById('toast-text');
       if (!toast || !toastText) return;
@@ -572,11 +600,11 @@
       toastTimer = setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'opacity-0');
-      }, 2800);
+      }, ms || 2800);
     }
 
     function initApp() {
-      generateQR(urls[currentTarget]);
+      setQRTarget(currentTarget, true);
     }
 
     if (document.readyState === 'loading') {
